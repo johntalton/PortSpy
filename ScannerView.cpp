@@ -16,6 +16,9 @@
 #include "ScannerView.h"
 #include "IPItem.h"
 #include "IPListView.h"
+#include "IPHistoryView.h"
+#include "PingHost.h"
+#include "PortRunner.h"
 
 /*******************************************************
 *   The GUI for the Scanner Window. This view also has
@@ -39,18 +42,21 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    t.right = t.left+30;
    
    IP_One = new BTextControl(t,"","","",NULL,B_FOLLOW_LEFT_RIGHT);
+   //IP_One->ResizeToPreferred();
    IP_One->SetDivider(0);
    
    t.left += 32;
    t.right = t.left+30;
    
    IP_Two = new BTextControl(t,"","","",NULL,B_FOLLOW_LEFT_RIGHT);
+   //IP_Two->ResizeToPreferred();
    IP_Two->SetDivider(0);
    
    t.left += 32;
    t.right = t.left+30;
  
    IP_Three = new BTextControl(t,"","","",NULL,B_FOLLOW_LEFT_RIGHT);
+   //IP_Three->ResizeToPreferred();
    IP_Three->SetDivider(0);
    
    t.left += 32;
@@ -59,12 +65,14 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    t.bottom -= 10;
    
    IP_Four_Start = new BTextControl(t,"","","",NULL,B_FOLLOW_LEFT_RIGHT);
+   //IP_Four_Start->ResizeToPreferred();
    IP_Four_Start->SetDivider(0);
    
    t.top += 20;   
    t.bottom += 20;
    
    IP_Four_Finish = new BTextControl(t,"","","",NULL,B_FOLLOW_LEFT_RIGHT);
+   //IP_Four_Finish->ResizeToPreferred();
    IP_Four_Finish->SetDivider(0);
       
    Bb->AddChild(IP_One);
@@ -74,22 +82,22 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    Bb->AddChild(IP_Four_Finish);
    
    
-  // IPList = new BPopUpMenu("");
- //  IPList->AddItem(new BMenuItem("127.0.0.1",new BMessage(IPHISTORY)));
- //  IPList->AddItem(new BMenuItem("192.168.1.41",new BMessage(IPHISTORY)));
-  // IPList->AddItem(new BMenuItem("192.168.1.39",new BMessage(IPHISTORY)));
+   //BMenuField *IPMenu = new BMenuField(BRect(150,25,175,30),"","",IPList);
+   iphv = new IPHistoryView(BRect(0,0,20,20));
+   Bb->AddChild(iphv);
    
-  // BMenuField *IPMenu = new BMenuField(BRect(150,25,175,30),"","",IPList);
-  // IPMenu->SetDivider(0);
-  // Bb->AddChild(IPMenu);
+   iphv->MoveTo(IP_Four_Start->Frame().right+5,IP_Three->Frame().top);
    
    ScanButton = new BButton(BRect(180,25,10,10), "scan","Scan", new BMessage(SCAN));
    ScanButton->ResizeToPreferred();
    Bb->AddChild(ScanButton);
    
    t = Bb->Bounds();
-   t.left = t.right - 210;
-   
+   t.left = t.right - 200;
+   t.right -= 20;
+   t.top += 10;
+   t.InsetBy(5,5);
+   /*
    t.top = 10;
    ftp = new BCheckBox(t, "", "FTP",NULL);
    Bb->AddChild(ftp);
@@ -128,7 +136,24 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    pop3 = new BCheckBox(t, "", "POP3",NULL);
    Bb->AddChild(pop3);
    pop3->ResizeToPreferred();
-
+   
+   */
+   
+  // BView *red = new BView(t,"",B_FOLLOW_NONE,0);
+  // red->SetViewColor(255,0,0);
+  // Bb->AddChild(red);
+  
+   portsv = new BTextControl(t,"","Ports","",NULL,B_FOLLOW_LEFT_RIGHT);
+   portsv->SetDivider(25);
+   
+   BTextView *textV = (BTextView*)portsv->ChildAt(0);
+   Limit(textV);
+   textV->AllowChar(',');
+   textV->AllowChar('-');
+   textV->SetMaxBytes(1000);
+   portsv->SetText("21,23,80-85");
+   Bb->AddChild(portsv);
+   /*
    t.top = 70;
    t.left = t.right - 210;
    scanrange = new BCheckBox(t, "", "Scan range",NULL);
@@ -147,7 +172,7 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    To = new BTextControl(t,"","To","128",NULL,B_FOLLOW_LEFT_RIGHT);
    To->SetDivider(20);
    Bb->AddChild(To);
-   
+   */
    BBox *Stat = new BBox(BRect(10,65,275,120),"Box",B_FOLLOW_TOP_BOTTOM);
    Stat->SetLabel("Progress");
    AddChild(Stat);
@@ -159,17 +184,17 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    t.InsetBy(5,5);
    t.top = 135;
    t.right = t.right - B_V_SCROLL_BAR_WIDTH;
-   t.bottom = t.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
+   t.bottom = t.bottom - B_H_SCROLL_BAR_HEIGHT;// -20 ;
    
    ScannedList = new IPListView(t);
    ScannedList->SetViewColor(230,230,230,255);
    AddChild(new BScrollView("",ScannedList,B_FOLLOW_TOP_BOTTOM,B_WILL_DRAW,true,true));
-  
+   
    //////////////////////////////
    // Stuff that does not work //
    //////////////////////////////
    //IP_Four_Finish->SetEnabled(false);
-   ftp->SetEnabled(false);
+   /*ftp->SetEnabled(false);
    http->SetEnabled(false);
    telnet->SetEnabled(false);
    samba->SetEnabled(false);
@@ -178,7 +203,7 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
    nntp->SetEnabled(false);
    smtp->SetEnabled(false);
    pop3->SetEnabled(false); 
-  
+  */
    BTextView *tmpV;
    tmpV = (BTextView*)IP_One->ChildAt(0);
    Limit(tmpV);
@@ -197,6 +222,13 @@ ScannerView::ScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRA
 *
 *******************************************************/
 ScannerView::~ScannerView(){
+}
+
+/*******************************************************
+*
+*******************************************************/
+void ScannerView::AttachedToWindow(){
+   iphv->SetTarget(this);
 }
 
 /*******************************************************
@@ -280,8 +312,9 @@ int32 ScannerView::ScanNow(){
       Window()->Unlock(); // almost forgot this
       return 0;
    }
+   /*
    int MaxPort = StringToInt(To->Text());
-   int MinPort = StringToInt(From->Text());
+   int MinPort = StringToInt(From->Text());*/
    int StartIP = StringToInt(IP_Four_Start->Text());
    int EndIP = StringToInt(IP_Four_Finish->Text());
    if(EndIP < StartIP){  // count in the right direction so we can update status bar easyer
@@ -293,28 +326,58 @@ int32 ScannerView::ScanNow(){
    
    int CurIP;
    for(CurIP = StartIP; CurIP <= EndIP; CurIP++){
-      Window()->Lock();
+      //Window()->Lock();
+      LockLooper();
       hostname.SetTo(MakeIP(StringToInt(IP_One->Text()),
                             StringToInt(IP_Two->Text()),
                             StringToInt(IP_Three->Text()),
                             CurIP));
-      
-      // We need some code right here to check to see if we have a IP/Host
-      // that is down. If so Dont scan it .. it will timeout ... uhh longtime
-    
+
       status->Reset("","");
-      status->SetMaxValue(MaxPort - MinPort);
+      char *ptext = (char*)portsv->Text();
+      PortRunner pr(ptext);
+      //pr.PrintPorts();
+      //status->SetMaxValue(MaxPort - MinPort);
+      status->SetMaxValue(pr.CountPorts());
 
       //DoDNS = DNSLookup->Value();
       
-      Window()->Unlock();
+      UnlockLooper();
+      
       
       portList.SetTo("");
         
       item = new IPItem(hostname.String(),portList);
       
+      Window()->Lock();
+      ScannedList->AddItem(item);
+      Window()->Unlock();
+      
+      // We need some code right here to check to see if we have a IP/Host
+      // that is down. If so Dont scan it .. it will timeout ... uhh longtime
+      // PingHost returns true if the host is up and false if the host 
+      // is down .. we pass it a string to the host name.
+      LockLooper();
+      status->Reset("Pinging host ->",hostname.String());
+      UnlockLooper();
+      bool hostup = PingHost(hostname.String());
+      LockLooper();
+      status->Reset("","");
+      UnlockLooper();
+      if(!hostup){
+         Window()->Lock();
+         item->SetHostDown();
+         item->SetHostName("Down host");
+         ScannedList->InvalidateItem(CurIP - StartIP); // had to do this so that it would redraw.
+         Window()->Unlock();
+         continue;
+      }
+      
       // This does our DNS lookup if the user wants                      
       if(DoDNS){
+         LockLooper();
+         status->Reset("Resolveing DNS for ->",hostname.String());
+         UnlockLooper();
          addrForDNS = inet_addr(hostname.String());
          theHost = gethostbyaddr((const char *)&addrForDNS, 4, AF_INET);
          if(theHost){
@@ -322,20 +385,22 @@ int32 ScannerView::ScanNow(){
          }else{
             item->SetHostName("No Name");
          }
+         LockLooper();
+         ScannedList->InvalidateItem(CurIP - StartIP);
+         status->Reset("","");
+         UnlockLooper();
       }
-        
-      Window()->Lock();
-      ScannedList->AddItem(item);
-      Window()->Unlock();
-      
-      for(a = MinPort;a <= MaxPort;a++){
+      printf("port scann\n");
+      //for(a = MinPort;a <= MaxPort;a++){
+      while((a = pr.GetNextPort()) != 0){
+         printf("scanning on port %i\n",a);
          tmp.SetTo("");
          tmp << (int32)a;
          Window()->Lock();
-         status->Update(a-status->CurrentValue()-MinPort,hostname.String(),tmp.String());
+         status->Update(1,hostname.String(),tmp.String());
          Window()->Unlock();
          addr.SetTo(hostname.String(), a);
-         if(control->Connect(addr) == B_NO_ERROR){
+         if(control->Connect(addr) == B_OK){
             portList << (int32)a << "  ";
             item->AddPort(a);
             Window()->Lock();
@@ -343,10 +408,14 @@ int32 ScannerView::ScanNow(){
             Window()->Unlock();
             control->Close(); // addind this in just to be safe
          }else{
+            //Window()->Lock();
+            //item->SetHostDown();
+            //ScannedList->InvalidateItem(CurIP - StartIP); // had to do this so that it would redraw.
+            //Window()->Unlock();
          }
       }   
       Window()->Lock();
-      status->Reset("0.0.0.0","0");
+      status->Reset("Finished","");
       Window()->Unlock();
    }
    Window()->Lock();
@@ -384,7 +453,39 @@ void ScannerView::DetachedFromWindow(){
 *******************************************************/
 void ScannerView::MessageReceived(BMessage *msg){
    switch(msg->what){
+      case VIEW_ACTIVE:
+      //(new BAlert(NULL,"scanner active",""))->Go();
+      break;
+   case IP_HISTORY:{
+      uint8 a,b,c,d;
+      if((msg->FindInt8("a",(int8*)&a) == B_OK) &&
+         (msg->FindInt8("b",(int8*)&b) == B_OK) &&
+         (msg->FindInt8("c",(int8*)&c) == B_OK) &&
+         (msg->FindInt8("d",(int8*)&d) == B_OK)){
+         
+         //msg->PrintToStream();
+         
+         BString str("");  str << (int32)a;
+         //(new BAlert(NULL,str.String(),""))->Go();
+         IP_One->SetText(str.String());
+         str.SetTo(""); str << (int32)b;
+         IP_Two->SetText(str.String());
+         str.SetTo(""); str << (int32)c;
+         IP_Three->SetText(str.String());
+         str.SetTo(""); str << (int32)d;
+         IP_Four_Start->SetText(str.String());
+         IP_Four_Finish->SetText(str.String());
+      }
+      }break;
    case SCAN:
+      {
+      BString str(IP_One->Text()); str.Append(".");
+      str.Append(IP_Two->Text()); str.Append(".");
+      str.Append(IP_Three->Text()); str.Append(".");
+      str.Append(IP_Four_Start->Text());
+      iphv->AddIP(StringToInt(IP_One->Text()),StringToInt(IP_Two->Text()),StringToInt(IP_Three->Text()),StringToInt(IP_Four_Start->Text()),str.String());
+      }
+      
       ScanButton->SetMessage(new BMessage(STOP));
       ScanButton->SetLabel("Stop");
       ScannerThread = spawn_thread(ScanNow_Hook, "Snooping around", B_NORMAL_PRIORITY, this);

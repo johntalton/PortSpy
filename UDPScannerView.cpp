@@ -9,6 +9,10 @@
 #include <InterfaceKit.h>
 #include <NetworkKit.h>
 
+#include <stdlib.h>
+#include <socket.h>
+#include <netdb.h>
+
 #include "Globals.h"
 #include "UDPScannerView.h"
 #include "IPItem.h"
@@ -127,10 +131,16 @@ UDPScannerView::UDPScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES,
    t.right = t.right - B_V_SCROLL_BAR_WIDTH;
    t.bottom = t.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
    
-   ScannedList = new IPListView(t);
-   ScannedList->SetViewColor(230,230,230,255);
-   AddChild(new BScrollView("",ScannedList,B_FOLLOW_TOP_BOTTOM,B_WILL_DRAW,true,true));
-  
+   //ScannedList = new IPListView(t);
+   //ScannedList->SetViewColor(230,230,230,255);
+   //AddChild(new BScrollView("",ScannedList,B_FOLLOW_TOP_BOTTOM,B_WILL_DRAW,true,true));
+   Out = new BTextView(t,"",BRect(0,0,b.right-20,200),B_WILL_DRAW,B_FOLLOW_ALL_SIDES);
+   Out->MakeEditable(false);
+   Out->MakeSelectable(true);
+   Out->MakeResizable(false);
+   Out->SetWordWrap(true);
+   AddChild(new BScrollView("",Out,B_FOLLOW_ALL_SIDES,B_WILL_DRAW,true,true));
+   Out->SetViewColor(230,230,230,255);
  
    BTextView *tmpV;
    tmpV = (BTextView*)IP_One_Start->ChildAt(0);
@@ -158,6 +168,13 @@ UDPScannerView::UDPScannerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES,
 *
 *******************************************************/
 UDPScannerView::~UDPScannerView(){
+}
+
+/*******************************************************
+*
+*******************************************************/
+void UDPScannerView::AttachedToWindow(){
+   ScanButton->SetTarget(this);
 }
 
 /*******************************************************
@@ -221,81 +238,144 @@ BString UDPScannerView::MakeIP(int a,int b,int c,int d){
 *   took a long time to get right, and is the cause of
 *   most crashes. :)
 *******************************************************/
-int32 UDPScannerView::ScanNow(){
-   int a = 0;
-   BNetEndpoint *control;
-   BString portList;
-   BString tmp;
-   BString hostname("");
-   
-   Window()->Lock();   
-   ScannedList->MakeEmpty();
-   control = new BNetEndpoint;
-   BNetAddress addr;
-   IPItem *item = 0;
 
-   if(control->InitCheck() != B_NO_ERROR){
-      (new BAlert(NULL,"BNetEndpoint failed\nThis could meen networking is down!","Ok"))->Go();
-      Window()->Unlock(); // almost forgot this
-      return 0;
-   }
-   int MaxPort = StringToInt(To->Text());
-   int MinPort = StringToInt(From->Text());
-   int StartIP = StringToInt(IP_Four_Start->Text());
-   int EndIP = StringToInt(IP_Four_Finish->Text());
-   if(EndIP < StartIP){  // count in the right direction so we can update status bar easyer
-      int tIP = StartIP;
-      StartIP = EndIP;
-      EndIP = tIP;
-   }
-   Window()->Unlock();
+#define PING_MINSIZE 32
+#define PING_MAXSIZE (65536 - 100)
+
+typedef struct echo_packet {
+	unsigned seq;
+	unsigned now[2];	/* unaligned long long */
+	char data[PING_MAXSIZE - (3 * sizeof(int))]; /* actual variable-length */
+} echo_packet_t;
+
+
+int32 UDPScannerView::ScanNow(){
+   echo_packet_t *data = NULL;
+   int size = PING_MINSIZE;
+   data = (echo_packet_t*)malloc(size);
    
-   int CurIP;
-   for(CurIP = StartIP; CurIP <= EndIP; CurIP++){
+   
+    struct sockaddr_in src;
+
+    src.sin_family = AF_INET;
+    src.sin_addr.s_addr = htonl(INADDR_ANY);
+//    src.sin_port = htons(DEFAULT_DFP_PORT);
+    int net_thread_socket;
+    if((net_thread_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
+    }
+//    if(bind(net_thread_socket, (struct sockaddr *) &src, sizeof(src)) == -1){
+//    }
+
+   // Make a destanation address out of our
+   // newly created host entry
+   struct sockaddr_in dst;
+   //memcpy(&dst.sin_addr, h->h_addr, h->h_length);
+   
+   int s;
+   dst.sin_family = AF_INET;
+   dst.sin_addr.s_addr = htonl(INADDR_BROADCAST); 
+   //dst.sin_port = htons(113);
+   if((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP)) < 0){
+      //create socket failed
+   }
+
+   // Crate a time packet
+   union{
+      bigtime_t now;
+      unsigned nowi[2];
+   }u;
+   u.now = system_time();
+   // Fill in the time for our packet
+   data->now[0] = u.nowi[0];
+   data->now[1] = u.nowi[1];
+   
+   // Set the sequesce number for this packet. 
+   // We are only doing ONE ping. So we can just
+   // make this the 1st packet we send, thus its
+   // hardcoded to 1.
+   data->seq = 1;
+   
+   // !! Actaully send the packet on its way !!
+   // (Socket, packet, packet size, ?, where to, size of des addrest)
+   if(sendto(s,(char *)data, sizeof(data), 0, (struct sockaddr *)&dst, sizeof(dst)) < 0){
+      // Faild to send the packet .. this is BAD
+      // close the socket we have open and run
+      //closesocket(s);!!!!!!!
+      return false;
+   }
+   
+   
+   // Aparently we just sent out ping packets to ever computer
+   // around use... hopefully this is true:
+   echo_packet_t ping_packet;
+   //bool block = false;
+   //setsockopt(s,SOL_SOCKET,SO_NONBLOCK,&block,sizeof(block));
+   while(true){
+   /*   if(recvfrom(s,(void *)&ping_packet,sizeof(ping_packet),0,NULL,NULL) < 0) {
+         //recvfrom error
+      }
+   */
+      // Create a time out struct
+      // and set it to about 2 seconds that should be
+      // enough for one ping from a host
+      struct timeval tv;
+      tv.tv_sec = 3;
+      tv.tv_usec = 0;
+   
+      // This is a socket mask.
+      // It helps select figure out which socket we want
+      struct fd_set fds;
+      FD_ZERO(&fds);  //FD_ZERO(set) clears the mask given by set
+      FD_SET(s, &fds);  // FD_SET(socket, set) adds a socket to the mask
+   
       Window()->Lock();
-      hostname.SetTo(MakeIP(StringToInt(IP_One_Start->Text()),
-                            StringToInt(IP_Two_Start->Text()),
-                            StringToInt(IP_Three_Start->Text()),
-                            CurIP));
-      Window()->Unlock();
-                            
-      // We need some code right here to check to see if we have a IP/Host
-      // that is down. If so Dont scan it .. it will timeout ... uhh longtime
-    
-      Window()->Lock();
-      status->Reset("","");
-      status->SetMaxValue(MaxPort - MinPort);
-      Window()->Unlock();
-    
-      portList.SetTo("");
-        
-      item = new IPItem(hostname.String(),portList);
-        
-      Window()->Lock();
-      ScannedList->AddItem(item);
+      Out->Insert("Select: ");
       Window()->Unlock();
       
-      for(a = MinPort;a <= MaxPort;a++){
-         tmp.SetTo("");
-         tmp << (int32)a;
+      switch(select(s + 1, &fds, NULL, NULL, &tv)){
+      case -1:
          Window()->Lock();
-         status->Update(a-status->CurrentValue()-MinPort,hostname.String(),tmp.String());
+         Out->Insert("bahhhh \n");
          Window()->Unlock();
-         addr.SetTo(hostname.String(), a);
-         if(control->Connect(addr) == B_NO_ERROR){
-            portList << (int32)a << "  ";
-            item->AddPort(a);
-            Window()->Lock();
-            ScannedList->InvalidateItem(CurIP - StartIP); // had to do this so that it would redraw.
-            Window()->Unlock();
-            control->Close(); // addind this in just to be safe
-         }else{
-         }
+         continue;
+         break;
+      case 0:
+         Window()->Lock();
+         Out->Insert("Timeout\n ");
+         Window()->Unlock();
+         continue;
+         break;
       }   
+   
+      // we got a 1 from select .. thus we have data ready
+      // on the socket... this is good
+      struct sockaddr_in from;
+      from.sin_family = AF_INET;
+      from.sin_addr.s_addr = htonl(INADDR_ANY);
+      //from.sin_port = htonl(113);
+      int fromlen = sizeof(from);
+      int datalen;
+   
       Window()->Lock();
-      status->Reset("0.0.0.0","0");
+      Out->Insert("Recvfrom: ");
       Window()->Unlock();
+   
+      datalen = recvfrom(s, (char *)data, size,0, (struct sockaddr *)&from, &fromlen);
+      if(datalen < 0){
+         //what does this mean?
+         // we have not data from the host
+         // that sent us a packet back?
+         //return false;
+      }
+      Window()->Lock();
+      Out->Insert("fuck\n");
+      Window()->Unlock();
+   
+      
    }
+   
+   
+   
    Window()->Lock();
    ScanButton->SetMessage(new BMessage(UDPSCAN));
    ScanButton->SetLabel("Scan");   
@@ -332,11 +412,11 @@ void UDPScannerView::DetachedFromWindow(){
 void UDPScannerView::MessageReceived(BMessage *msg){
    switch(msg->what){
    case UDPSCAN:
-    //  ScanButton->SetMessage(new BMessage(UDPSTOP));
-    //  ScanButton->SetLabel("Stop");
-    //  ScannerThread = spawn_thread(UDPScanNow_Hook, "UDPSnooping around", B_NORMAL_PRIORITY, this);
-	 //  resume_thread(ScannerThread);
-      (new BAlert(NULL,"Working hard on getting this setup and running. Should be soon but no promisis :)","That stinks"))->Go();
+      ScanButton->SetMessage(new BMessage(UDPSTOP));
+      ScanButton->SetLabel("Stop");
+      ScannerThread = spawn_thread(UDPScanNow_Hook, "UDPSnooping around", B_NORMAL_PRIORITY, this);
+	   resume_thread(ScannerThread);
+      //(new BAlert(NULL,"Working hard on getting this setup and running. Should be soon but no promisis :)","That stinks"))->Go();
       break;
    case UDPSTOP:
       kill_thread(ScannerThread);

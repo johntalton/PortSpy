@@ -13,6 +13,7 @@ class UDPScannerView : public BView {
    public:
       UDPScannerView(BRect);
       ~UDPScannerView();
+      virtual void AttachedToWindow();
       virtual void DetachedFromWindow();
       virtual void MessageReceived(BMessage*);
       int32 ScanNow();
@@ -30,7 +31,8 @@ class UDPScannerView : public BView {
       
       BPopUpMenu *IPList;
       
-      IPListView *ScannedList;
+      //IPListView *ScannedList;
+      BTextView *Out;
       
       BTextControl *IP_One_Start;
       BTextControl *IP_Two_Start;

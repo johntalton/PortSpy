@@ -24,6 +24,7 @@ IPItem::IPItem(const char *s,BString ports):BListItem(){
    strcpy(name, s);
    HostName.SetTo(name);
    //Ports = new BList(ports);
+   HostDown = false;
    Ports.SetTo(ports);
    HostNameString.SetTo("");
 }
@@ -43,6 +44,14 @@ void IPItem::SetHostName(const char *s){
    name = (char *) malloc(strlen(s)+1);
    strcpy(name, s);
    HostNameString.SetTo(name);
+}
+
+/*******************************************************
+*   Sets the itme to Hostdown .. ie it does not 
+*   respond to pings. 
+*******************************************************/
+void IPItem::SetHostDown(){
+   HostDown = true;
 }
 
 /*******************************************************
@@ -88,6 +97,9 @@ void IPItem::DrawItem(BView *owner, BRect frame, bool complete) {
       owner->SetHighColor(0,0,0);
    }else{
      owner->SetHighColor(100,0,0);
+   }
+   if(HostDown){
+      owner->SetHighColor(100,0,0);
    }
    owner->DrawString(HostName.String());
    //owner->DrawString(" ");

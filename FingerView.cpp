@@ -24,7 +24,7 @@ FingerView::FingerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME
 
 
    b.InsetBy(5,5);
-   BBox *Bb = new BBox(BRect(b.left,b.top,b.right,125),"Mybox",B_FOLLOW_TOP_BOTTOM);
+   BBox *Bb = new BBox(BRect(b.left,b.top,b.right,125),"Mybox",B_FOLLOW_TOP|B_FOLLOW_LEFT_RIGHT);
    Bb->SetLabel("");
    AddChild(Bb);
     
@@ -43,12 +43,19 @@ FingerView::FingerView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME
    FingerNow = new BButton(BRect(290,53,10,10), "finger","Finger", new BMessage(FINGER));
    FingerNow->ResizeToPreferred();
    Bb->AddChild(FingerNow);
-  
-   b.InsetBy(5,5);
+   
+   /*b = Bounds();
+   b.InsetBy(8,8);
    b.top = 135;
    b.right = b.right - B_V_SCROLL_BAR_WIDTH;
-   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
-
+   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT;
+  */ 
+   b = Bounds();
+   b.InsetBy(10,10);
+   b.top = 135;
+   b.right = b.right - B_V_SCROLL_BAR_WIDTH;
+   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT;// -20 ;
+   
    FingerOut = new BTextView(b,"",BRect(0,0,b.right-20,200),B_WILL_DRAW,B_FOLLOW_ALL_SIDES);
    FingerOut->MakeEditable(false);
    FingerOut->MakeSelectable(true);

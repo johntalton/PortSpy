@@ -8,7 +8,7 @@
 #include "PortSpy.h"
 
 // Application's signature
-const char *APP_SIGNATURE = "application/x-vnd.Abstract-PortSpy";
+const char *APP_SIGNATURE = "application/x-vnd.YNOP-PortSpy";
 
 /*******************************************************
 *   Main.. What else do you want from me.

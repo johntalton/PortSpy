@@ -9,10 +9,13 @@
 
 #include "IPListView.h"
 
+class IPHistoryView;
+
 class ScannerView : public BView {
    public:
       ScannerView(BRect);
       ~ScannerView();
+      virtual void AttachedToWindow();
       virtual void DetachedFromWindow();
       virtual void MessageReceived(BMessage*);
       int32 ScanNow();
@@ -23,6 +26,8 @@ class ScannerView : public BView {
       int StringToInt(const char*);
       BString MakeIP(int,int,int,int);
       void Limit(BTextView*);
+      
+      IPHistoryView *iphv;
       
       thread_id ScannerThread;
       
@@ -37,7 +42,10 @@ class ScannerView : public BView {
       BTextControl *IP_Four_Start;
       BTextControl *IP_Four_Finish;
       
-      BCheckBox *ftp;
+      
+      BTextControl *portsv;
+      
+    /*  BCheckBox *ftp;
       BCheckBox *http;
       BCheckBox *telnet;
       BCheckBox *samba;
@@ -51,7 +59,7 @@ class ScannerView : public BView {
       
       BTextControl *From;
       BTextControl *To;
-      
+*/      
       BStatusBar *status;
 };
 #endif

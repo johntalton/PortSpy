@@ -17,9 +17,13 @@
 #include "ScannerView.h"
 #include "UDPScannerView.h"
 #include "DNSView.h"
-#include "TraceRView.h"
+//#include "TraceRView.h"
 #include "WhoisView.h"
 #include "FingerView.h"
+#include "WebSpeedView.h"
+//#include "YTabView.h"
+#include "PSTabV.h"
+#include "AboutView.h"
 
 /*******************************************************
 *   Open up a prity little window and add some stuff 
@@ -31,46 +35,48 @@ PSView::PSView(BWindow *parentWin, BRect frame):BView(frame, "", B_FOLLOW_ALL_SI
    //Shift code to attached to window so tabs work!
    BRect b = Bounds();
    
-   b.bottom = b.bottom - 15;
-   tabView = new BTabView(b, "tab_view");
-   tabView->SetViewColor(216,216,216,0);
+  // b.bottom = b.bottom - 14;
+   //tabView = new BTabView(b, "tab_view");
+   PSTabV *ytv = new PSTabV(b);
+   //tabView->SetViewColor(216,216,216,0);
+   AddChild(ytv);
    
-   SView = new ScannerView(tabView->Bounds());
-   DView = new DNSView(tabView->Bounds());
-   TView = new TraceRView(tabView->Bounds());   
-   PView = new PingView(tabView->Bounds());
-   WView = new WhoisView(tabView->Bounds());
-   UView = new UDPScannerView(tabView->Bounds());
-   FView = new FingerView(tabView->Bounds());
+//   TView = new TraceRView(ytv->Bounds());   
+//   UView = new UDPScannerView(ytv->Bounds());
    
-   tab = new BTab();
-   tabView->AddTab(SView,tab);  
-   tab->SetLabel("Scanner");
-   //tab = new BTab();
-   //tabView->AddTab(UView,tab);  
-   //tab->SetLabel("UDPScanner");
-   tab = new BTab();
-   tabView->AddTab(FView,tab);  
-   tab->SetLabel("Finger");
-   tab = new BTab();
-   tabView->AddTab(WView, tab);
-   tab->SetLabel("Whois");
-   //tab = new BTab();
-   //tabView->AddTab(TView, tab);
-   //tab->SetLabel("TraceRoute");
-   tab = new BTab();
-   tabView->AddTab(PView, tab);
-   tab->SetLabel("Ping");
-   tab = new BTab();
-   tabView->AddTab(DView, tab);
-   tab->SetLabel("DNS");
    
-   AddChild(tabView);
+   AView = new AboutView(ytv->Bounds());//,"",B_FOLLOW_ALL,0);
+   ytv->AddTab(AView,"About");
+   
+   SView = new ScannerView(ytv->Bounds());
+   ytv->AddTab(SView,"Scanner");
+   
+   FView = new FingerView(ytv->Bounds());
+   ytv->AddTab(FView,"Finger");
+   
+   WView = new WhoisView(ytv->Bounds());
+   ytv->AddTab(WView,"Whois");
+   
+   PView = new PingView(ytv->Bounds());
+   ytv->AddTab(PView,"Ping");
+   
+   DView = new DNSView(ytv->Bounds());
+   ytv->AddTab(DView,"DNS");
+   
+   NView = new NTPView(ytv->Bounds());
+   ytv->AddTab(NView,"Time");
+   
+   MView = new WebSpeedView(ytv->Bounds());//,"",B_FOLLOW_ALL,0);
+   ytv->AddTab(MView,WEBSPEED);
+   
+   ytv->SelectTab(0);
+   
+  
 
    // Add in the standerd looking status bar at the bottom
    b = Bounds();
    StatusBar = new BBox(BRect(b.left-3,b.bottom-14,b.right+3,b.bottom+3),"StatusBar",B_FOLLOW_LEFT_RIGHT|B_FOLLOW_BOTTOM); 
-   AddChild(StatusBar);
+  // AddChild(StatusBar);
 }
 
 /*******************************************************
@@ -86,7 +92,7 @@ PSView::~PSView(){
 *   width but thats the way they did it. Oh well.
 *******************************************************/
 void PSView::AttachedToWindow(){
-   tabView->SetTabWidth(B_WIDTH_FROM_WIDEST);
+   //tabView->SetTabWidth(B_WIDTH_FROM_WIDEST);
 }
 
 /*******************************************************
@@ -95,6 +101,10 @@ void PSView::AttachedToWindow(){
 *******************************************************/
 void PSView::MessageReceived(BMessage *msg){
    switch(msg->what){
+   case PROXY_SETTINGS:
+   case SWITCH_VIEW:
+      MView->MessageReceived(msg);
+      break;
    case UDPSTOP:
    case UDPSCAN: // Pass down to UDPscanner
   //    UView->MessageReceived(msg);

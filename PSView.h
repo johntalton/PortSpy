@@ -12,6 +12,9 @@
 #include "PingView.h"
 #include "WhoisView.h"
 #include "FingerView.h"
+#include "WebSpeedView.h"
+#include "AboutView.h"
+#include "NTPView.h"
 
 class PSView : public BView {
    public:
@@ -29,7 +32,9 @@ class PSView : public BView {
       PingView       *PView;
       WhoisView      *WView;
       UDPScannerView *UView;
-      
+      WebSpeedView   *MView;
+      AboutView      *AView;
+      NTPView        *NView;
       
       BBox *StatusBar;
       BTabView *tabView;

@@ -15,6 +15,8 @@
 #include "DNSView.h"
 #include "IPTextControl.h"
 
+#include "IPHistoryView.h"
+
 /*******************************************************
 *   Nice little DNS lookup code. Its useing the old 
 *   Be sockets and netdb stuff. So thats not kewl but
@@ -93,15 +95,21 @@ DNSView::DNSView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_EVENT
    IP_Two->SetEnabled(false);
    IP_Three->SetEnabled(false);
    IP_Four->SetEnabled(false);
- 
+   
+   
    Lookup = new BButton(BRect(350,10,10,10), "dns","Lookup", new BMessage(LOOKUP));
    Lookup->ResizeToPreferred();
    Bb->AddChild(Lookup);
    
+   iphv = new IPHistoryView(BRect(0,0,20,20));
+   Bb->AddChild(iphv);
+   iphv->MoveTo(Name->Frame().right + 5,Lookup->Frame().top);
+   
+   
    b.InsetBy(5,5);
    b.top = 135;
    b.right = b.right - B_V_SCROLL_BAR_WIDTH;
-   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
+   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT;// -20 ;
 
    DNSOut = new BTextView(b,"",BRect(0,0,b.right-20,200),B_WILL_DRAW,B_FOLLOW_ALL_SIDES);
    DNSOut->MakeEditable(false);
@@ -128,6 +136,14 @@ DNSView::DNSView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_EVENT
 *******************************************************/
 DNSView::~DNSView(){
 }
+
+/*******************************************************
+*
+*******************************************************/
+void DNSView::AttachedToWindow(){
+   iphv->SetTarget(this);
+}
+
 
 /*******************************************************
 *   Little func to fix up our text boxes so they behave
@@ -192,7 +208,7 @@ int32 DNSView::DNSLookup(){
    DNSOut->Clear();
    Window()->Unlock();
    
-   struct hostent *theHost; 
+   struct hostent *theHost = NULL;
    
    int i = 0; 
    h_errno = 0; 
@@ -225,8 +241,7 @@ int32 DNSView::DNSLookup(){
      Window()->Lock();  
      DNSOut->Insert("Lookup Failed\n");
      Window()->Unlock(); 
-   } 
-   else { 
+   }else{ 
       if (h_errno == TRY_AGAIN) {
          Window()->Lock(); 
          DNSOut->Insert("Lookup via Hosts file\n");
@@ -293,6 +308,36 @@ void DNSView::DetachedFromWindow(){
 *******************************************************/
 void DNSView::MessageReceived(BMessage *msg){
    switch(msg->what){
+   case IP_HISTORY:{
+      uint8 a,b,c,d;
+      if((msg->FindInt8("a",(int8*)&a) == B_OK) &&
+         (msg->FindInt8("b",(int8*)&b) == B_OK) &&
+         (msg->FindInt8("c",(int8*)&c) == B_OK) &&
+         (msg->FindInt8("d",(int8*)&d) == B_OK)){
+         
+         
+         //msg->PrintToStream();
+         
+         BString str("");  str << (int32)a;
+         //(new BAlert(NULL,str.String(),""))->Go();
+         IP_One->SetText(str.String());
+         str.SetTo(""); str << (int32)b;
+         IP_Two->SetText(str.String());
+         str.SetTo(""); str << (int32)c;
+         IP_Three->SetText(str.String());
+         str.SetTo(""); str << (int32)d;
+         IP_Four->SetText(str.String());
+         
+         BString name;
+         if(msg->FindString("name",&name) != B_OK){
+            name.SetTo("");
+            name << (int32)a << "." << (int32)b << "." << (int32)c << "." << (int32)d;
+         }
+         Name->SetText(name.String());
+         
+         
+      }
+      }break;
    case LOOKUP:
       DNSThread = spawn_thread(DNS_Hook, "Looken up da name", B_NORMAL_PRIORITY, this);
 	   resume_thread(DNSThread);

@@ -13,11 +13,13 @@ class IPItem:public BListItem{
       void MakeMenu(BMenu*);
       BString GetHostName();
       void SetHostName(const char*);
+      void SetHostDown();
    private:
       char *name;
       BString Ports;
       BList portList;
       BString HostName;
       BString HostNameString;
+      bool HostDown;
 };
 #endif

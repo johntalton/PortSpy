@@ -16,6 +16,7 @@ class PSWindow : public BWindow {
    private:
       BMenuBar *menubar;
       PSView *View;
+      BMenu *WSmenu;
 
 };
 #endif

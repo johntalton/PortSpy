@@ -10,13 +10,15 @@
 #include <NetworkKit.h>
 #include <String.h>
 
+#include <stdio.h>
 #include <stdlib.h>
-#include <socket.h>
+#include <net/socket.h>
 #include <netdb.h>
 #include <string.h>
 
 #include "Globals.h"
 #include "PingView.h"
+#include "IPHistoryView.h"
 
 #define PING_MINSIZE 32
 #define PING_MAXSIZE (65536 - 100)
@@ -40,26 +42,40 @@ PingView::PingView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_EVE
    Bb->SetLabel("");
    AddChild(Bb);
    
-   BStringView *s1 = new BStringView(BRect(80,10,b.right-10,25),"","Yes this is Ping and yes it does work - don't ask, don't tell codeing policy");
+   
+   BStringView *s1 = new BStringView(BRect(0,0,1,1),"","Enter and Domain name or IP address (x.x.x.x) and Ping away.");
+   s1->ResizeToPreferred();
    Bb->AddChild(s1);
    
+   s1->MoveTo((Bb->Bounds().Width() - s1->Bounds().Width()) / 2,10);
    
-   BRect t = b;
-   t.top = 55;
-   t.left = 160;
-   t.right = 285;
-   Name = new BTextControl(t,"name","","",new BMessage(PING));
+   
+   Name = new BTextControl(BRect(0,0,100,20),"name","","",new BMessage(PING));
    Name->SetDivider(0);
    Bb->AddChild(Name);
    
-   PingIt = new BButton(BRect(290,53,10,10), "ping","Ping", new BMessage(PING));
+   iphv = new IPHistoryView(BRect(0,0,20,20));
+   Bb->AddChild(iphv);
+   
+   PingIt = new BButton(BRect(0,0,1,1), "ping","Ping", new BMessage(PING));
    PingIt->ResizeToPreferred();
    Bb->AddChild(PingIt);
- 
+   
+   int32 size = Name->Bounds().Width() + 5 + 
+                iphv->Bounds().Width() + 5 +
+                PingIt->Bounds().Width();
+   
+   int32 start = (Bb->Bounds().Width() - size) / 2;
+   
+   Name->MoveTo(start,50);
+   iphv->MoveTo(Name->Frame().right+5,50);
+   PingIt->MoveTo(iphv->Frame().right+5,50-3);
+   
+   
    b.InsetBy(5,5);
    b.top = 135;
    b.right = b.right - B_V_SCROLL_BAR_WIDTH;
-   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
+   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT;// -20 ;
 
    PingOut = new BTextView(b,"",BRect(0,0,b.right-20,200),B_WILL_DRAW,B_FOLLOW_ALL_SIDES);
    PingOut->MakeEditable(false);
@@ -74,6 +90,13 @@ PingView::PingView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_EVE
 *
 *******************************************************/
 PingView::~PingView(){
+}
+
+/*******************************************************
+*
+*******************************************************/
+void PingView::AttachedToWindow(){
+   iphv->SetTarget(this);
 }
 
 /*******************************************************
@@ -161,12 +184,14 @@ int32 PingView::PingHost(){
 	
 	BString TimeString("");
 	
-   data = malloc(size);
+   data = (echo_packet_t*)malloc(size);
    
    BString hname;
    Window()->Lock();
    hname.SetTo(Name->Text());
    Window()->Unlock();
+   
+   iphv->AddIP(0,0,0,0,hname.String());
    
    h = gethostbyname(hname.String());
 	if (h == NULL) {
@@ -179,7 +204,7 @@ int32 PingView::PingHost(){
 	}
 	
 	memcpy(&dst.sin_addr, h->h_addr, h->h_length);
-   //printf("%i",dst.sin_port);
+  // printf("\"%i\"\n",dst.sin_port);
    
    
    // from here on out ... ?
@@ -322,8 +347,25 @@ void PingView::DetachedFromWindow(){
 *
 *******************************************************/
 void PingView::MessageReceived(BMessage *msg){
+   //printf("MessageReceived in ping\n");
    switch(msg->what){
+   case IP_HISTORY:{
+      uint8 a,b,c,d;
+      if((msg->FindInt8("a",(int8*)&a) == B_OK) &&
+         (msg->FindInt8("b",(int8*)&b) == B_OK) &&
+         (msg->FindInt8("c",(int8*)&c) == B_OK) &&
+         (msg->FindInt8("d",(int8*)&d) == B_OK)){
+         
+         //msg->PrintToStream();
+         
+         BString str("");
+         str << (int32)a << "." << (int32)b << "." << (int32)c << "." << (int32)d;
+         Name->SetText(str.String());
+      }
+      }break;
    case PING:
+      
+      
       kill_thread(PingThread);
       PingIt->SetMessage(new BMessage(STOPPING));
       PingIt->SetLabel("Stop");
@@ -336,6 +378,8 @@ void PingView::MessageReceived(BMessage *msg){
       PingIt->SetLabel("Ping"); 
       break;
    default:
+      //printf("default ping\n");
+      //msg->PrintToStream();
       BView::MessageReceived(msg);
    }
 }

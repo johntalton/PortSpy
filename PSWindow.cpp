@@ -22,7 +22,7 @@
 *   let the view take over.  We also nead some message
 *   redirection and handling
 *******************************************************/
-PSWindow::PSWindow(BRect frame) : BWindow(frame,"PortSpy   ",B_TITLED_WINDOW,B_NOT_ZOOMABLE|B_NOT_RESIZABLE|B_ASYNCHRONOUS_CONTROLS){//
+PSWindow::PSWindow(BRect frame) : BWindow(frame,"PortSpy   ",B_TITLED_WINDOW,B_NOT_ZOOMABLE|B_ASYNCHRONOUS_CONTROLS|B_NOT_RESIZABLE){//
    BRect r;
    BMenu *menu;
    BMenuItem *item;
@@ -32,7 +32,7 @@ PSWindow::PSWindow(BRect frame) : BWindow(frame,"PortSpy   ",B_TITLED_WINDOW,B_N
    menubar = new BMenuBar(r, "MenuBar");
    // Standard File menu
    menu = new BMenu("File");
-   menu->AddItem(new BSeparatorItem());
+   //menu->AddItem(new BSeparatorItem());
    menu->AddItem(item=new BMenuItem("About PortSpy", new BMessage(B_ABOUT_REQUESTED), 'A'));
    item->SetTarget(be_app);
    menu->AddItem(new BSeparatorItem());
@@ -41,11 +41,16 @@ PSWindow::PSWindow(BRect frame) : BWindow(frame,"PortSpy   ",B_TITLED_WINDOW,B_N
    menubar->AddItem(menu);
    // Stander Options menu
    menu = new BMenu("Options");
+   menu->AddItem(item=new BMenuItem("Documentation", new BMessage(DOCS), 'D'));
    menu->AddItem(item=new BMenuItem("Open Terminal", new BMessage(OPEN_TERM), 'T'));
    menu->AddItem(new BMenuItem("Crash",new BMessage(CRASH)));
    // add Options menu now
    menubar->AddItem(menu);
    
+   WSmenu = new BMenu(WEBSPEED);
+   WSmenu->AddItem(item=new BMenuItem("Proxy Settings", new BMessage(PROXY_SETTINGS)));
+   //menubar->AddItem(WSmenu);
+      
    // Attach the menu bar to he window
    AddChild(menubar);
    
@@ -65,6 +70,8 @@ PSWindow::PSWindow(BRect frame) : BWindow(frame,"PortSpy   ",B_TITLED_WINDOW,B_N
 *   like new game and pause and stuff like that.
 *******************************************************/
 void PSWindow::MessageReceived(BMessage* msg){
+   char *ad = { "http://www.latech.edu/~jta001/BeOS/PortSpyDoc/PortSpy.html"};
+
    switch(msg->what){
    case WHO:
    case STOP:
@@ -79,7 +86,30 @@ void PSWindow::MessageReceived(BMessage* msg){
    case IPHISTORY:
    case SCAN:  // Pass all of this off to the view
    case FINGER:
+   case SWITCH_VIEW:
+   case PROXY_SETTINGS:
       View->MessageReceived(msg);
+      break;
+   case SHOW_WS_MENU:
+   {
+      BMenuItem *item = menubar->FindItem(WEBSPEED);
+      if(item == NULL){
+         menubar->AddItem(WSmenu);
+      }
+      break;
+   }
+   case HIDE_WS_MENU:
+   {
+      BMenuItem *item = menubar->FindItem(WEBSPEED);
+      if(item){
+         menubar->RemoveItem(item);
+      }
+      break;
+   }
+   case DOCS:
+      //tmpS.SetTo("http://www.latech.edu/~jta001/BeOS/Mahjongg/index.html");
+      //ad = (char*)tmpS.String(); 
+      be_roster->Launch("application/x-vnd.Be-NPOS",1,&ad);
       break;
    case OPEN_TERM:
       // Lanch a terminl window.

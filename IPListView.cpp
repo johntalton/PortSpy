@@ -70,7 +70,7 @@ void IPListView::MouseDown(BPoint p){
                      tmpS = tmpIPItem->GetHostName();
                      tmpS.Prepend("http://");
                      tmpS.Append("/");
-                     ad = tmpS.String(); 
+                     ad = (char*)tmpS.String(); 
                      
                      be_roster->Launch("application/x-vnd.Be-NPOS",1,&ad);
                      break;

@@ -63,7 +63,7 @@ void PortSpy::AboutRequested(){
       "PortSpy ©\n\nIf you spent the time to find this:\n\tA. You need a hobbie\n\tB. You're a hacker, code cracker, slacker.\n\tC. You really want to register this app!",
       " A "," B ","  C  ",B_WIDTH_AS_USUAL,B_IDEA_ALERT))->Go();
    }else{
-      (new BAlert("About PortSpy","PortSpy ©1999\n\nTheAbstractCompany\nhttp://www.latech.edu/~jta001/BeOS\nynop@acm.org\n\nVersion: 1.0 Beta 2.x","Thats Nice"))->Go();
+      (new BAlert("About PortSpy","PortSpy ©1999,2000\n\nTheAbstractCompany\nhttp://www.latech.edu/~jta001/BeOS\nynop@acm.org\n\nWebSpeed writen by Michael Wulff Nielsen (Naish@worldoneline.dk)\n\nLogo by Caitlin Kilgore\n\nVersion: 2.x","Thats Nice"))->Go();
    }
 }
 

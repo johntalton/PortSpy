@@ -57,9 +57,8 @@ WhoisView::WhoisView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_E
    whoisServerList->AddItem(new BMenuItem("Some Other Whois Server",new BMessage(NEWWHOSERVER)));
 
  
-
    t = b;
-   BMenuField *ServerMenu = new BMenuField(BRect(t.right-162,22,t.right,40),"","",whoisServerList);
+   BMenuField *ServerMenu = new BMenuField(BRect(t.right-152,22,t.right,40),"","",whoisServerList);
    ServerMenu->SetDivider(0);
    Bb->AddChild(ServerMenu);
 
@@ -97,7 +96,7 @@ WhoisView::WhoisView(BRect frame):BView(frame, "", B_FOLLOW_ALL_SIDES, B_FRAME_E
    b.InsetBy(5,5);
    b.top = 135;
    b.right = b.right - B_V_SCROLL_BAR_WIDTH;
-   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT -20 ;
+   b.bottom = b.bottom - B_H_SCROLL_BAR_HEIGHT;// -20 ;
 
    WhoOut = new BTextView(b,"",BRect(0,0,b.right-20,200),B_WILL_DRAW,B_FOLLOW_ALL_SIDES);
    WhoOut->MakeEditable(false);

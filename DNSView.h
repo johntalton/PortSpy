@@ -8,6 +8,8 @@
 
 #include "IPTextControl.h"
 
+class IPHistoryView;
+
 class DNSView : public BView {
    public:
       DNSView(BRect);
@@ -16,6 +18,7 @@ class DNSView : public BView {
       static int32 DNS_Hook(void* obj){
 			return ((DNSView*)obj)->DNSLookup();
 		}
+		virtual void AttachedToWindow();
 		virtual void DetachedFromWindow();
       virtual void MessageReceived(BMessage*);
    private:
@@ -34,6 +37,8 @@ class DNSView : public BView {
       BTextControl *IP_Two;
       BTextControl *IP_Three;
       BTextControl *IP_Four;
+      
+      IPHistoryView *iphv;
       
       thread_id DNSThread;
 
