@@ -1,0 +1,166 @@
+PortSpy1.0 (beta2)
+ 
+Niffy little port scanner thats quick and dirty. Made it so I could learn Be Net api
+Uses the New wonderful NetworkKit.
+
+Please send lots feedback.  What do you want a PortSpy to do? ynop@acm.org
+
+Traceroute is currently imposible to implement on BeOS due to its limited Network API.
+hopefully we will see a improvement in Dano ver (the one after Maui) 
+
+Thanks to all the people that helped out. Thanks Kobi Lurie for all the sugesstions and stuff. and big thanks to that guy at Be who gave me some hints about ping. Props go out to Peter (peter.smets@kmonet.be) of BeReview (bereviews.com) for all the sugestions and the publicity. Thanks to HickBoy from #bedev that rebooted 20 times to try to fix a bug. And to everone who sent me mail about what they wanted to see.
+
+NOTE: Does anyone want to see DoS (denial of service) code or Mail spoofing, or any such thing that would be evil.  How about some ICQ or AIM protocal watchers or everone need a good Sniffer!  I am starting to look into a way to watch ports so you can see what is going on with you conection. Let me know your thoughs.
+
+Things to Add:
+	Test for FTP login (you supply uname and pass or anon mode)
+	Send data to port your scanning.
+	 Log ports scanned.
+
+Ver 1.0 beta 2.6.2:
+	Added another whois server
+Ver 1.0 beta 2.6.1:
+	Bug some people were haveing ..  Thanks to Hickboy for finding it and.
+	that is finding it and spending hours helping me fix it - as it didn't happen on my box
+Ver 1.0 beta 2.6:
+	Added a standard unix like finger.
+	Note that if you just put a name it will fail. Be has not finger daemon
+	I should write a finger daemon shouldn't I ...
+Ver 1.0 beta 2.5:
+	Stated adding history for scanner.
+	Added histroy to UDP scanner too.
+	Trying to make a Global IP history!
+	Added in DNS lookup in Scanner - cant toggle it yet though. Always on
+	Output of scanner added name. Athough its based off of the text width , its close
+	If output of scanner is ugly due to fonts, sorry, will try to fix that later.
+	UDP scanner got some stuff added.
+	Working hard.
+Ver 1.0 beta 2.4:
+	Just updated the list of whois servers .. it now has some usefull stuff !!!!
+	The whois list is thanks to Jean de Pompignan Thanks
+	Should be adding some more soon :)
+	Lots of good Whois added
+	I also set up a lot more stuff for UDPScan ..
+	You will be able to scan "ALL" of the net 0.0.0.0 255.255.255.255 
+	On top of that you can still scan all the ports you want
+	UDP scan is going to take a while to write. Have to spin of several threads
+Ver 1.0 beta 2.3:
+	Big thoughs on makeing a UDP ver of the port scanner. It would run 10x faster :)
+	Althought there would be lost of stuff to keep up with.
+	A progress bar would be out of the question with a UDP scanner.
+	All kinds of crazy code. Kobi wanted to be able to click on port and open it
+	Now you can right click on a IP and select something to open. (sorrta)
+	Got it to open a IP in a Net+ window. stil working on telnet and ftp.
+	The IPListItem creats the list so it only has ports that it found.
+	Had to rewrite IPListView and IPListItem. all kinds of problems there.
+	Fixxed up some probmes with ping.
+	Added more errors checking in ping. Now gives some nice feedback
+	Fixxed some other little bugs that were hanging around crashing things.
+	Commented a bunch more stuff .. Some be easy to follow and read.
+Ver 1.0 beta 2.2:
+	Big mess.
+	Added in Ping - realy crude and messy.
+	It took a lot and is still verry cryptic and unreadable.
+	It works just with Names and not IP right now.
+	If you enter nothing it will sit there and do nothing.
+	Dont ask. dont tell construction of this.
+	Limited IP input boxes so that they will only accept 3 digits
+	Limited IP input boxes so that they will only accept digits
+	Still must use Tab to change field thought.
+Ver 1.0 beta 2.1:
+	Reenabled Whois button after switching tabs. sorry about that one.
+	Added in a control->Close() .. didnt change a thing but its good style I gess.
+Ver 1.0 beta 2.0:
+	More bug fixs with scanner. Unlock window if BNetEndpoint fails (oops)
+	We dont kill the content of the output windows when changeing tabs now
+	Now as ports are scanned and found they show up in the list - not wait till the end
+	Almost forget to take out workaround. Fixxen that.
+	Fixed up whois button so you dont make a thousand whois running at once :)
+	At this point I do not see a way of getting Traceroute to work.
+	Wish I knew how ping was implemented that might give me a clue.
+Ver 1.0 beta 1.9:
+	Got threading finished for DNS
+	Added all the code to PortSpy
+	Added lookup by name/IP value
+	Fixxed bugs with DNS Lookup.
+	Redid output of DNS window
+	Fixxed some other panels bugs that caused crashes.
+Ver 1.0 beta 1.8:
+	DNS lookup code is finished. Now we must incorperat it with the app
+	GUI for DNS finished. 
+	Threading for DNS started
+Ver 1.0 beta 1.7:
+	Makeing much progress on DNS.
+	You can now enter an name and it will do a dns lookup on that name
+	Added in the GUI for dns
+	Working on terrible timeout when trying to scan down hosts.
+Ver 1.0 beta 1.6:
+	Although I am supposed to be working on Troute. I am working on DNS lookups.
+	I think I will have them ready soon .. have to look into it a bit more
+	added some text based DNS so it works a little bit.
+Ver 1.0 beta 1.5:
+	This is a big mess. I finaly got the tabs to be smaller and not crash the app.
+	This is the strangest thing how they work. . BTabView is strange.
+	If you want to know just about BTabView and there strange behavior
+	I will try to explain to you. I am also gona put up a web page all about them
+	So noone else has to go through that mess. check my web page for that link.
+Ver 1.0 beta 1.4:
+	Went through and did a comenting of the code. Not the best but a start.
+	Also did some clean up of stuff I had left in there .. 
+	Still ... working bugs outa my threading code.(BTabSucksView)
+	Added in the Options and Lanch Terminal menu.
+	Only real bug now is if you dont enter a rang of IP its scanner  x.x.x.0
+Ver 1.0 beta 1.3:
+	Fixed threading problem
+	Fixed crash on tab switching.. BTabView removed view .. thus crashing app. 
+	BTabView neads to fix this .. it should Hide/Show the window not remove it.
+	Corectly reset after switching tabs while scannering or whoising.
+	If you type in IP from low to high or from hight to low it works Ok
+Ver 1.0 beta 1.2:
+	Threaded Whois. Just enought to not lock GUI up ....
+	Still some problems with whois gui
+	Added a Wonderful Stop button so you can kill unwanted scans.
+	Fixed several bugs with the Stop button. It now changes back to a Scan button :)
+	Whois is 99% complete. wee.
+	Added threading to the Scanner so GUI doesn't lock anymore.
+	It's not multi-threaded but thats OK
+	Bug if you scan a IP that is down .. TimeOut is a around a min. (looking into this)
+	Started Work on Ping and TraceRoute (troute is ugly .. might be a while)
+Ver 1.0 beta 1.1:
+	Working on Whois. Most of GUI is up and running.
+	Got Whois working ..  
+	The progres bar is a little of for whois .. but cant help that.
+	If you just hit enter with no name it will give you lotsa help
+	Hiting enter after typeing a name works. dont have to hit button
+	Added whois server selector .. but what are other good whois servers?
+	Added GUI for minimal whois. (dont know if I will actually add this)
+Ver 1.0 beta 1:
+	This is still verry beta .. we are barly outa alpha with
+	Weee we can now type in a IP and scan a range of ports
+	Currently we only use the first IP (not a range of IPs)
+	We REALY nead to fix those IP input boxes for "." tabs and limit to 3 numbers
+	Because we use the app thread we hang on ports that timeout.
+	Included services text with PortSpy. So you can see what port is what.
+	Thinking of Changeing DNS to whois. Prity much the same.
+	Hangs on port 111 (sunrpc) some times - looking into that
+	If anyone knows how to make tab width smaller let me know
+Ver 1.0 alpa 1.1:
+	Add in wonderfull status bar .. and moved some things around.
+	Primitive output window .. Shows the IP and ports scanned. Need to make it nicer
+	Scans hardcode addres now with hardcoded range of ports
+	GUI is 90% finished for the scanner. 
+	Started Work on DNS lookup GUI
+Ver 1.0 alpa 1 
+	Got the basic Idea out. Most of the gui is layed out
+	Decided that most stuff will nead to be reimplimented to do spesific task
+	Nead to fix the IP input boxes.
+	Need to make all the special stuff for the output box. (big job)
+	Add int the NET code. (big job)
+	decided to add more than just port scanner. DNS,TraceRoute, Ping (if possible)
+Things to add:
+	Should chang filed when you hit "."
+
+YNOP
+ynop@acm.org  
+TheAbstractCompany
+http://www.latech.edu/~jta001/BeOS
